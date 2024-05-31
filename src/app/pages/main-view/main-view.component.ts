@@ -1,21 +1,35 @@
-import { Component } from '@angular/core';
-import {
-  CdkDragDrop,
-  moveItemInArray,
-  transferArrayItem,
-  CdkDrag,
-  CdkDropList,
-} from '@angular/cdk/drag-drop';
+import {Component, OnInit} from '@angular/core';
+import {CdkDragDrop, moveItemInArray, transferArrayItem,} from '@angular/cdk/drag-drop';
 import {Board} from "../../models/board.model";
-import {B} from "@angular/cdk/keycodes";
 import {Column} from "../../models/column.model";
+import {DataService} from "../../service/dataService";
+import {Status, Story} from "../../models/story.model";
 
 @Component({
   selector: 'app-main-view',
   templateUrl: './main-view.component.html',
   styleUrls: ['./main-view.component.scss']
 })
-export class MainViewComponent {
+export class MainViewComponent implements OnInit{
+  stories: Story[] = [];
+
+  constructor(private dataService: DataService) {
+    console.log(this.stories)
+  }
+
+  ngOnInit(): void {
+    this.dataService.getPosts().subscribe(
+      (data) => {
+        this.stories = data.map(story => ({
+          ...story,
+        }));
+    console.log(this.stories)
+      },
+      error => {
+        console.error('Error fetching stories', error)
+      }
+    );
+  }
 
   board: Board = new Board('Test Board', [
     new Column('Open', [
