@@ -10,11 +10,11 @@ import {Status, Story} from "../../models/story.model";
   templateUrl: './main-view.component.html',
   styleUrls: ['./main-view.component.scss']
 })
-export class MainViewComponent implements OnInit{
-  stories: Story[] = [];
+export class MainViewComponent implements OnInit {
+  stories: Story[] = []
+  board: Board = new Board('Test Board', [])
 
   constructor(private dataService: DataService) {
-    console.log(this.stories)
   }
 
   ngOnInit(): void {
@@ -23,7 +23,7 @@ export class MainViewComponent implements OnInit{
         this.stories = data.map(story => ({
           ...story,
         }));
-    console.log(this.stories)
+        this.board = this.mapResponseToBoard(this.stories);
       },
       error => {
         console.error('Error fetching stories', error)
@@ -31,31 +31,33 @@ export class MainViewComponent implements OnInit{
     );
   }
 
-  board: Board = new Board('Test Board', [
-    new Column('Open', [
-      'Some random idea',
-      'Intellij idea',
-      'Not a great idea'
-    ]),
-    new Column('Ready', [
-      'Refined story',
-      'Intellij refined story',
-      'Ultra turbo refined story'
-    ]),
-    new Column('Implementation', [
-      'Get to work',
-      'Pick up groceries',
-      'Go home',
-      'Fall asleep'
-    ]),
-    new Column('Done', [
-      'Get up',
-      'Brush teeth',
-      'Take a shower',
-      'Check e-mail',
-      'Walk dog'
-    ]),
-  ])
+  private mapResponseToBoard(stories: Story[]): Board {
+    const columns: { [key: string]: Column } = {
+      'Open': new Column('Open', []),
+      'Ready': new Column('Ready', []),
+      'Implementation': new Column('Implementation', []),
+      'Done': new Column('Done', [])
+    }
+
+    stories.forEach(story => {
+      switch (story.storyState) {
+        case Status.OPEN.toUpperCase():
+          columns['Open'].tasks.push(story.title);
+          break;
+        case Status.READY.toUpperCase():
+          columns['Ready'].tasks.push(story.title);
+          break;
+        case Status.IMPLEMENTATION.toUpperCase():
+          columns['Implementation'].tasks.push(story.title);
+          break;
+        case Status.DONE.toUpperCase():
+          columns['Done'].tasks.push(story.title);
+          break;
+      }
+    })
+
+    return new Board('Story Board', Object.values(columns));
+  }
 
   drop(event: CdkDragDrop<string[]>) {
     if (event.previousContainer === event.container) {
