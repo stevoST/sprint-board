@@ -21,10 +21,10 @@
           <div class="tasks-container"
                cdkDropList
                #todoList="cdkDropList"
-               [cdkDropListData]="column.tasks"
-               (cdkDropListDropped)="drop($event)">
-            <div class="task" *ngFor="let item of column.tasks" cdkDrag>
-              {{item}}
+               [cdkDropListData]="column.stories"
+               (cdkDropListDropped)="drop($event, column.name)">
+            <div class="task" *ngFor="let item of column.stories" cdkDrag>
+              {{item.title}}
             </div>
           </div>
 

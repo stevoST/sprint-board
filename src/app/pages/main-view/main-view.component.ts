@@ -18,7 +18,7 @@ export class MainViewComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.dataService.getPosts().subscribe(
+    this.dataService.getStories().subscribe(
       (data) => {
         this.stories = data.map(story => ({
           ...story,
@@ -42,16 +42,16 @@ export class MainViewComponent implements OnInit {
     stories.forEach(story => {
       switch (story.storyState) {
         case Status.OPEN.toUpperCase():
-          columns['Open'].tasks.push(story.title);
+          columns['Open'].stories.push(story);
           break;
         case Status.READY.toUpperCase():
-          columns['Ready'].tasks.push(story.title);
+          columns['Ready'].stories.push(story);
           break;
         case Status.IMPLEMENTATION.toUpperCase():
-          columns['Implementation'].tasks.push(story.title);
+          columns['Implementation'].stories.push(story);
           break;
         case Status.DONE.toUpperCase():
-          columns['Done'].tasks.push(story.title);
+          columns['Done'].stories.push(story);
           break;
       }
     })
@@ -59,7 +59,7 @@ export class MainViewComponent implements OnInit {
     return new Board('Story Board', Object.values(columns));
   }
 
-  drop(event: CdkDragDrop<string[]>) {
+  drop(event: CdkDragDrop<Story[]>, columnName: String) {
     if (event.previousContainer === event.container) {
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
     } else {
@@ -69,6 +69,31 @@ export class MainViewComponent implements OnInit {
         event.previousIndex,
         event.currentIndex,
       );
+      const story = event.container.data[event.currentIndex];
+      story.storyState = this.getStateFromString(columnName);
+      this.dataService.updateStory(story).subscribe(
+        updatedStory => {
+          console.log('Story updated', story)
+        },
+        error => {
+          console.error('Error updating story', story)
+        }
+      );
+    }
+  }
+
+  private getStateFromString(columnName: String): Status {
+    switch (columnName) {
+      case 'Open':
+        return Status.OPEN;
+      case 'Ready':
+        return Status.READY;
+      case 'Implementation':
+        return Status.IMPLEMENTATION;
+      case 'Done':
+        return Status.DONE;
+      default:
+        throw new Error('Unknown column name: ${columnName}');
     }
   }
 }
